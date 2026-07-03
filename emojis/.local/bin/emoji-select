@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Give dmenu a list of emojis to copy.
+
+
+EMOJIS="$SCRIPTS/bin/utils/emojis/emojis.txt"
+
+x11() {
+    COPIED=$(dmenu -i -c -l 20 -bw 3 < "$EMOJIS" | awk '{print $1}')
+
+    if [[ -n "$COPIED" ]]; then
+        echo -n "$COPIED" | xclip -selection clipboard
+        notify-send "$COPIED copied to clipboard."
+    fi
+}
+
+wayland() {
+    COPIED=$(rofi -dmenu -i < "$EMOJIS"| awk '{print $1}')
+
+    if [[ -n "$COPIED" ]]; then
+        echo -n "$COPIED" | wl-copy
+        notify-send "$COPIED copied to clipboard."
+    fi
+}
+
+
+if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
+    wayland
+elif [[ "$XDG_SESSION_TYPE" == "x11" ]]; then
+    x11
+else
+    echo "Unknown"
+fi
