@@ -1,4 +1,4 @@
-# instrum
+# instrum (instrumenta)
 
 Some of my small scripts, commands, and utilities I use for my Linux setup.
 
@@ -40,7 +40,31 @@ This links the scripts into:
 > [!NOTE]
 > Make sure `~/.local/bin` is included in `PATH`.
 
-## Structure
+## Packages
+
+| Package     | Description                                                                |
+| ----------- | -------------------------------------------------------------------------- |
+| `emojis`    | Emoji selection and lookup utilities.                                      |
+| `gentoo`    | Gentoo-specific maintenance and update scripts.                            |
+| `hyprland`  | Scripts for the Hyprland desktop environment.                              |
+| `music`     | Music-related utilities.                                                   |
+| `network`   | Network information and diagnostics.                                       |
+| `utilities` | General-purpose helper scripts.                                            |
+| `weather`   | Weather utilities.                                                         |
+| `webapps`   | Launchers for web applications such as GitHub, Outlook, Proton, and Teams. |
+
+## Repository Structure
+
+Each package mirrors the target directory structure expected by GNU Stow. For example:
+
+```text
+hyprland/
+└── .local/
+    └── bin/
+        ├── hypr-layout
+        ├── screenshot
+        └── setbackground
+```
 
 ## Development
 
@@ -50,7 +74,7 @@ Scripts should be executable:
 chmod +x <package>/.local/bin/<script>
 ```
 
-This repository uses pre-commit with gitleaks to help prevent committing secrets.
+This repository uses `pre-commit` with `gitleaks` to help prevent committing secrets.
 
 Install the Git hooks:
 
