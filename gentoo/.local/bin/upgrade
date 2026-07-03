@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+RESET="\033[0m"
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+
+prompt_proceed (){
+echo -en "Continue emerging? ["$GREEN"Y"$RESET"/"$RED"n"$RESET"] "
+read ANSWER
+
+case "$ANSWER" in
+    "Y"|"y"|'') return 0 ;;
+    "N"|"n") return 1 ;;
+    *) echo "Not recognized as an option"; prompt_proceed ;;
+esac
+
+}
+
+main (){
+# Only run if root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run as root"
+    exit 1
+fi
+
+if [[ "$1" == "autounmask" ]]; then
+    emerge --autounmask=y --autounmask-write -auUDN @world
+    etc-update
+fi
+
+# Print estimated run time
+ESTIMATE="$(emerge -puUDN --with-bdeps=y @world | genlop -p | tail -n 1)"
+
+case $ESTIMATE in
+    "!!! Error"*) echo -e ""$GREEN"System already up-to-date!"$RESET"" ; exit 0 ;;
+    *) echo $ESTIMATE; prompt_proceed || exit 0 ;;
+esac
+
+# Emerge
+emerge -quUDN --with-bdeps=y @world
+
+}
+
+main $1

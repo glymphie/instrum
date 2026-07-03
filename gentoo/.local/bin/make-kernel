@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+
+main (){
+# Only run if root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run as root"
+    exit 1
+fi
+
+echo "Compiling kernel for \ $(eselect --brief kernel show)"
+
+# Switch to eselect kernel
+cd /usr/src/linux || exit 1
+
+make modules_prepare
+make -j7
+make modules_install
+make install
+
+emerge -q @module-rebuild
+
+grub-install
+grub-mkconfig -o /boot/grub/grub.cfg
+}
+
+main
