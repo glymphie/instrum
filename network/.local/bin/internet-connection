@@ -1,0 +1,8 @@
+#!/bin/sh
+# Description:
+#   Ping Quad9 to check for internet connectivity
+case $(ping -q -c 1 9.9.9.9 >/dev/null; echo $?) in
+    2) echo "🌐" ;;
+    0) echo "🌍" ;;
+    *) echo "🦗" ;;
+esac

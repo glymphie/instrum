@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Description:
+#   Print current VPN connectivity status
+
+get_vpn() {
+  nmcli -t -f NAME,TYPE connection show --active |
+    awk -F: '$2 == "wireguard" { print $1 ":" $2; exit }'
+}
+
+short() {
+  local vpn="$1"
+
+  if [[ -n "$vpn" ]]; then
+    echo "🔒"
+  else
+    echo "🔓"
+  fi
+}
+
+long() {
+  local vpn="$1"
+
+  if [[ -n "$vpn" ]]; then
+    local name="${vpn%%:*}"
+    local device="${vpn#*:}"
+
+    echo "🔒 Connected to VPN: $name ($device)"
+  else
+    echo "🔓 Disconnected from VPN"
+  fi
+}
+
+main() {
+  local format="${1:-short}"
+  local vpn="$(get_vpn)"
+
+  case "$format" in
+    short) short "$vpn" ;;
+    long) long "$vpn" ;;
+    *) short "$vpn" ;;
+  esac
+}
+
+main "$@"

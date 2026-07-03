@@ -1,0 +1,42 @@
+#!/bin/sh
+# Description:
+#   Print info about the currently connected networks
+
+parseinterface(){
+    INTERFACE="$(echo $1 | sed -E 's/\/operstate$//;s/.*\///')"
+    JQINFO="$(ip -j a show $INTERFACE)"
+
+    COUNT="$(echo $JQINFO | jq -r '.[].addr_info | length')"
+
+    echo "$INTERFACE $2"
+
+    for (( i=0; i<$COUNT; i++ ))
+    do
+        echo "$JQINFO" |\
+            jq -r ".[].addr_info[$i].family, .[].addr_info[$i].local, .[].addr_info[$i].prefixlen" |\
+            tr '\n' ' ' |\
+            sed 's/^inet6/IPv6:/g;s/^inet/IPv4:/g' |
+            awk '{printf "- " $1 " " $2 "/" $3}'
+        echo
+    done
+}
+
+wireless(){
+    parseinterface "$1" "🛜"
+}
+
+ethernet(){
+    parseinterface "$1" "🖥️🔗🖥️"
+}
+
+inets=$(find /sys/devices -name operstate)
+
+for inet in $inets
+do
+    case $inet in
+        *virtual*|*virt*) ;;
+        *wlp*|*wir*) grep -q 'up' "$inet" && wireless "$inet" ;;
+        *enp*|*ens*|*eth*) grep -q 'up' "$inet" && ethernet "$inet" ;;
+        *) ;;
+    esac
+done

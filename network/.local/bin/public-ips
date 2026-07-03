@@ -1,0 +1,8 @@
+#!/bin/sh
+# Description:
+#   Show your public IP address
+
+IP4=$(curl -4 -s https://ifconfig.co || echo "No Address Found")
+IP6=$(curl -6 -s https://ifconfig.co || echo "No Address Found")
+
+printf 'Public IPv4: %s\nPublic IPv6: %s\n' "$IP4" "$IP6"
