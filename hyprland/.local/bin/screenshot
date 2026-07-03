@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Description:
+#   Take a screenshot:
+#   * By selecting a section (select)
+#   * Of the currently active monitor (monitor)
+#   * Of everything (everything)
+
+selectregion() {
+    grim -g "$(slurp)" - | swappy -f -
+}
+
+selectmonitor() {
+    local monitor=$(hyprctl activeworkspace -j | jq -r ".monitor")
+
+    grim -o "$monitor" - | swappy -f -
+}
+
+selecteverything() {
+    grim - | swappy -f -
+}
+
+main() {
+    local format="${1:-select}"
+
+    sleep 0.2
+
+    case "$format" in
+        select) selectregion ;;
+        monitor) selectmonitor ;;
+        everything) selecteverything ;;
+        *) ;;
+    esac
+}
+
+main "$@"

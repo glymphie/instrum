@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Description:
+#   Set a random background in Hyprland with two monitors
+
+wait_for_hyprpaper() {
+    local timeout=10
+    local elapsed=0
+
+    while ! pgrep -x hyprpaper >/dev/null; do
+        printf "\rWaiting for hyprpaper to start..."
+        sleep 0.1
+        elapsed=$(awk "BEGIN {print $elapsed + 0.1}")
+
+        if (( $(awk "BEGIN {print ($elapsed >= $timeout)}") )); then
+            printf "\nhyprpaper did not start within %d seconds\n" "$timeout"
+            exit 1
+        fi
+    done
+
+    sleep 1
+}
+
+set_background() {
+    local backgrounds="$XDG_PICTURES_DIR/background/double/"
+
+    fileext0="_0.png"
+    fileext1="_1.png"
+
+    filebasename=$(find "$backgrounds" -name "*$fileext0" -exec basename {} \; | shuf -n 1 | sed -E "s/$fileext0$//")
+
+    monitor0=$(hyprctl monitors -j | jq -r ".[0].name")
+    monitor1=$(hyprctl monitors -j | jq -r ".[1].name")
+
+    hyprctl hyprpaper wallpaper "$monitor0,$backgrounds$filebasename$fileext0"
+    hyprctl hyprpaper wallpaper "$monitor1,$backgrounds$filebasename$fileext1"
+}
+
+main() {
+    wait_for_hyprpaper
+    set_background
+}
+
+main "$@"

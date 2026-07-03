@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Description:
+#   Get the current layout:
+#   * Master [M]
+#   * Dwindle [D]
+#   * Scrolling [S]
+
+layout="$(hyprctl activeworkspace -j | jq -r '.tiledLayout')"
+
+case "$layout" in
+  master)
+    echo "[M]"
+    ;;
+  dwindle)
+    echo "[D]"
+    ;;
+  scrolling)
+    echo "[S]"
+    ;;
+  *)
+    echo "?"
+    ;;
+esac
