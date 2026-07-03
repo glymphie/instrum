@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Description:
+#   Get various stats about the currently playing song:
+#   * Name (Title - Artist)
+#   * Namescroll (Scroll Title - Artist with zscroll)
+#   * Status (Show emoji depending on the status)
+#   * Duration (Elapsed/Duration)
+
+get_song_name() {
+    local song_metadata="$1"
+
+    jq -r '"\(.metadata.title // "Unknown") - \(.metadata.artist // "Unknown")"' <<< "$song_metadata"
+}
+
+get_song_name_scroll() {
+    zscroll -l 20 \
+        --delay 0.4 \
+        --update-check true \
+        "$0 name"
+}
+
+get_song_status_playpause() {
+    local song_status="$1"
+    local state="$(jq -r ".state" <<< "$song_status")"
+
+    case "$state" in
+        Play) echo "▶️" ;;
+        Pause) echo "⏸️" ;;
+        *) echo "⏹️"  ;;
+    esac
+}
+
+get_song_elapsed() {
+    local song_status="$1"
+
+
+    read -r elapsed duration < <(
+        jq -r '[.elapsed.secs // 0, .duration.secs // 0] | @tsv' <<< "$song_status"
+    )
+
+    if (( duration == 0 )); then
+        return 0
+    fi
+
+    printf '%02d:%02d/%02d:%02d\n' \
+        $((elapsed/60)) $((elapsed%60)) \
+        $((duration/60)) $((duration%60))
+}
+
+main() {
+  local format="$1"
+  local song_metadata="$(rmpc song)"
+  local song_status="$(rmpc status)"
+
+  case "$format" in
+    name) get_song_name "$song_metadata" ;;
+    namescroll) get_song_name_scroll "$song_metadata" ;;
+    status) get_song_status_playpause "$song_status"  ;;
+    duration) get_song_elapsed "$song_status"  ;;
+    *) echo "$song_metadata" "$song_status" ;;
+  esac
+}
+
+main "$@"
