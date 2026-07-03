@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+LOCATION="copenhagen"
+XDG_CACHE_DIR="$XDG_CACHE_HOME/wttr/"
+
+check_cache() {
+    local file="$1"
+
+    if [[ ! -d "$XDG_CACHE_DIR" ]]; then
+        mkdir "$XDG_CACHE_DIR"
+    fi
+
+
+    if [[ -f "$XDG_CACHE_DIR/$file" ]] && (( $(date +%s) - $(stat -c %Y "$XDG_CACHE_DIR/$file") < (60 * 60) )); then
+        cat "$XDG_CACHE_DIR/$file"
+        exit 0
+    fi
+}
+
+print_wttr() {
+    local file="$1"
+    local format="$2"
+
+    check_cache "$file"
+
+    local weather=$(curl -s "wttr.is/$LOCATION/?format=$format" | awk '{$1=$1};1')
+
+    case "$weather" in
+        *Unknown*|*Sorry*) exit 1 ;;
+        *) ;;
+    esac
+
+    printf "%s\n" "$weather" | tee "$XDG_CACHE_DIR/$file"
+}
+
+print_details() {
+    local file="details"
+    check_cache "$file"
+
+    weatheremoji="$(main weatheremoji)"
+    weathercondition="$(main weathercondition)"
+    temperature="$(main temperature)"
+    percipitation="$(main percipitation)"
+    wind="$(main wind)"
+    humidity="$(main humidity)"
+    pressure="$(main pressure)"
+    moonemoji="$(main moon)"
+    uvindex="$(main uvindex)"
+    dawn="$(main dawn)"
+    sunrise="$(main sunrise)"
+    zenith="$(main zenith)"
+    sunset="$(main sunset)"
+    dusk="$(main dusk)"
+
+cat <<EOF | tee "$XDG_CACHE_DIR/$file"
+Weather Condition $weatheremoji $weathercondition
+Temperature 🌡️ $temperature
+Percipitation 💧 $percipitation
+Wind Strength 🍃 $wind
+Humidity 🌫️ $humidity
+Pressure 🌀 $pressure
+Moon phase $moonemoji
+UV index (0-12) ☀️ $uvindex
+Zenith 🌞 $zenith
+Dawn & Sunrise 🌅 $dawn / $sunrise
+Sunset & Dusk 🌆 $sunset / $dusk
+EOF
+}
+
+
+main() {
+    local format="${1:-short}"
+
+    case "$format" in
+        short) print_wttr short '%c🌡️%t+💧%p' ;;
+        weatheremoji) print_wttr weatheremoji "%c" ;;
+        weathercondition) print_wttr weathercondition "%C" ;;
+        temperature) print_wttr temperature "%t" ;;
+        percipitation) print_wttr percipitation "%p" ;;
+        wind) print_wttr wind "%w" ;;
+        moon) print_wttr moon "%m";;
+        humidity) print_wttr humidity "%h";;
+        pressure) print_wttr pressure "%P";;
+        uvindex) print_wttr uvindex "%u";;
+        dawn) print_wttr dawn "%D";;
+        sunrise) print_wttr sunrise "%S";;
+        zenith) print_wttr zenith "%z";;
+        sunset) print_wttr sunset "%s";;
+        dusk) print_wttr dusk "%d";;
+        details) print_details ;;
+        *) ;;
+    esac
+}
+
+main "$@"
