@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Description:
+#   Displays the full path and contents of a given program or script
+#   (excluding contents of binary files)
+
+# Function to display help message
+show_help() {
+    printf "%s\n" "Usage:"
+    printf "%s\n" "  inside <command>"
+    printf "\n"
+    printf "%s\n" "Displays the full path and contents of a given program or script, excluding binary files."
+    printf "\n"
+    printf "%s\n" "Options:"
+    printf "%s\n" "  -h, --help   Show this help message and exit"
+}
+
+# Check for help flag
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    show_help
+    exit 0
+fi
+
+if [ -z "$1" ]; then
+    show_help
+    exit 1
+fi
+
+SRCPATH="$(command -v "$1")"
+
+if [ -z "$SRCPATH" ]; then
+    printf "%s\n" "Error: Command '$1' not found."
+    exit 1
+fi
+
+# Check if the path is a symbolic link
+if [ -L "$SRCPATH" ]; then
+    REALPATH="$(readlink -f "$SRCPATH")"
+    printf "%s\n" "Symbolic Link: $SRCPATH"
+    printf "%s\n" "Resolved Path: $REALPATH"
+    printf "%s\n" "--------------------------------------------------------------------------------"
+    SRCPATH="$REALPATH"
+else
+    SRCPATH="$(readlink -f "$SRCPATH")"
+fi
+
+# Check if the file is readable
+if [ ! -r "$SRCPATH" ]; then
+    printf "%s\n" "Error: '$SRCPATH' is not readable."
+    exit 1
+fi
+
+printf "%s\n" "$SRCPATH"
+printf "%s\n" "--------------------------------------------------------------------------------"
+
+# Check if the file is a binary or non-text file
+if [[ $(file --mime "$SRCPATH") != *"text/"* ]]; then
+    printf "%s\n" "'$SRCPATH' is a binary file."
+    file "$SRCPATH"
+    exit 0
+fi
+
+# Attempt to display the file contents, handling errors
+if ! cat "$SRCPATH"; then
+    printf "%s\n" "Error: Failed to read '$SRCPATH'."
+    exit 1
+fi
