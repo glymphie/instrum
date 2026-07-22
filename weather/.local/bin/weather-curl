@@ -11,7 +11,8 @@ check_cache() {
     fi
 
 
-    if [[ -f "$XDG_CACHE_DIR/$file" ]] && (( $(date +%s) - $(stat -c %Y "$XDG_CACHE_DIR/$file") < (60 * 60) )); then
+    if [[ -f "$XDG_CACHE_DIR/$file" && -s "$XDG_CACHE_DIR/$file" ]] &&
+       (($(date +%s) - $(stat -c %Y "$XDG_CACHE_DIR/$file"))) < 3600; then
         cat "$XDG_CACHE_DIR/$file"
         exit 0
     fi
@@ -30,7 +31,7 @@ print_wttr() {
         *) ;;
     esac
 
-    printf "%s\n" "$weather" | tee "$XDG_CACHE_DIR/$file"
+    printf "%s" "$weather" | tee "$XDG_CACHE_DIR/$file"
 }
 
 print_details() {
