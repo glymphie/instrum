@@ -2,7 +2,7 @@
 # Give dmenu a list of emojis to copy.
 
 
-EMOJIS="$SCRIPTS/bin/utils/emojis/emojis.txt"
+EMOJIS="$HOME/.local/bin/emojis.txt"
 
 x11() {
     COPIED=$(dmenu -i -c -l 20 -bw 3 < "$EMOJIS" | awk '{print $1}')
