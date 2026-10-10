@@ -1,0 +1,2 @@
+#!/bin/bash
+for d in */; do (cd "$d" && [ -d ".git" ] && echo "=== $d ===" && git status -s); done
